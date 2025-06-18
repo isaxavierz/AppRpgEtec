@@ -11,10 +11,11 @@ namespace AppRpgEtec.Services.Personagens
     public class PersonagemService : Request
     {
         private readonly Request _request;
-        private const string apiUrlBase = "http://luizsouza.somee.com/RpgApi/Personagens";
-        //xyz --> site da sua API
+        //private const string apiUrlBase = "http://luizsouza.somee.com/RpgApi/Personagens";
+        private const string apiUrlBase = "https://rpgapids20242.azurewebsites.net/Personagens";
 
         private string _token;
+
         public PersonagemService(string token)
         {
             _request = new Request();
@@ -58,5 +59,27 @@ namespace AppRpgEtec.Services.Personagens
             _request.GetAsync<ObservableCollection<Models.Personagem>>(apiUrlBase + urlComplementar, _token);
             return listaPersonagens;
         }
+
+        public async Task<int> PutRestaurarPontosAsync(Personagem p)
+        {
+            string urlComplementar = "/RestaurarPontosVida";
+            var result = await _request.PutAsync(apiUrlBase+urlComplementar, p , _token);
+            return result;
+        }
+
+        public async Task<int> PutZerarRankingAsync(Personagem p)
+        {
+            string urlComplementar = "/ZerarRanking";
+            var result = await _request.PutAsync(apiUrlBase + urlComplementar, p, _token);
+            return result;
+        }
+
+        public async Task<int> PutZerarRankingRestaurarVidasGeralAsync()
+        {
+            string urlComplementar = "/ZerarRankingRestaurarVidas";
+            var result = await _request.PutAsync(apiUrlBase + urlComplementar, new Personagem(), _token);
+            return result;
+        }
+
     }
 }

@@ -1,6 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using AppRpgEtec.Models;
+using AppRpgEtec.Services.Personagens;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
@@ -10,6 +13,10 @@ namespace AppRpgEtec.Services
 {
     public class Request
     {
+        private const string _apiUrlBase = "https://luizsouza.somee.com/Disputas";
+        //xyz --> site da sua API
+
+        private string _token;
         //Comentário branch Tela Login
 
         public async Task<int> PostReturnIntAsync<TResult>(string uri, TResult data, string token)

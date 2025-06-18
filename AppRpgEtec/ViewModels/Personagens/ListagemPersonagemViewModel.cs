@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.Maui.Controls;
 
 namespace AppRpgEtec.ViewModels.Personagens
 {
@@ -26,9 +27,13 @@ namespace AppRpgEtec.ViewModels.Personagens
 
             RemoverPersonagemCommand = 
                 new Command<Personagem>(async (Personagem p) => { await RemoverPersonagem(p); });
+
+            ZerarRankingRestaurarVidasGeralCommand =
+                new Command(async () => { await ZerarRankingRestaurarVidasGeral(); });  
         }
         public ICommand NovoPersonagemCommand { get; }               
         public ICommand RemoverPersonagemCommand { get; set; }
+        public ICommand ZerarRankingRestaurarVidasGeralCommand { get; set; }
 
         //Próximos elementos da classe aqui
         public async Task ObterPersonagens()
@@ -70,10 +75,7 @@ namespace AppRpgEtec.ViewModels.Personagens
                 {
                     personagemSelecionado = value;
 
-                    
-
-                    Shell.Current
-                        .GoToAsync($"cadPersonagemView?pId={personagemSelecionado.Id}");
+                    _ = ExibirOpcoesAsync(PersonagemSelecionado);
                 }
             }
         }
@@ -101,13 +103,118 @@ namespace AppRpgEtec.ViewModels.Personagens
             }
         }      
 
+        public async Task ExecutarRestaurarPontosPersonagem(Personagem p)
+        {
+            await pService.PutPersonagemAsync(p);
+        }
 
-       
+        public async Task ExecutarZerarRankingPersonagem(Personagem p)
+        {
+            await pService.PutZerarRankingAsync(p);
+        }
 
-       
+        public async Task ExecutarZerarRankingRestaurarVidasGeral()
+        {
+            await pService.PutZerarRankingRestaurarVidasGeralAsync();
+        }
 
-        
+        public async void ProcessarOpcaoRespondidaAsync(Personagem personagem, string result)
+        {
+            if (result.Equals("Editar Personagem"))
+            {
+                await Shell.Current
+                .GoToAsync($"cadPersonagemView?pId={personagem.Id}");
+            }
+            else if (result.Equals("Remover Personagem"))
+            {
+                if (await Application.Current.MainPage.DisplayAlert("Confirmação",
+                $"Deseja realmente remover o personagem {personagem.Nome.ToUpper()}?",
+                "Yes", "No"))
+                {
+                    await RemoverPersonagem(personagem);
+                    await Application.Current.MainPage.DisplayAlert("Informação",
+                    "Personagem removido com sucesso!", "Ok");
+                    await ObterPersonagens();
+                }
+            }
+            else if (result.Equals("Restaurar Pontos de Vida"))
+            {
+                if (await Application.Current.MainPage.DisplayAlert("Confirmação",
+                $"Restaurar os pontos de vida de {personagem.Nome.ToUpper()}?", "Yes", "No"))
+                {
+                    await ExecutarRestaurarPontosPersonagem(personagem);
+                    await Application.Current.MainPage.DisplayAlert("Informação",
+                    "Os pontos foram restaurados com sucesso.", "Ok");
+                    await ObterPersonagens();
+                }
+            }
+            else if (result.Equals("Zerar Ranking do Personagem"))
+            {
+                if (await Application.Current.MainPage.DisplayAlert("Confirmação",
+                $"Zerar o ranking de {personagem.Nome.ToUpper()}?", "Yes", "No"))
+                {
+                    await ExecutarZerarRankingPersonagem(personagem);
+                    await Application.Current.MainPage.DisplayAlert("Informação",
+                    "O ranking foi zerado com sucesso.", "Ok");
+                    await ObterPersonagens();
+                }
+            }
+        }
 
+        public async Task ExibirOpcoesAsync(Personagem personagem)
+        {
+            try
+            {
+                personagemSelecionado = null;
+                string result = string.Empty;
+                if (personagem.PontosVida > 0)
+                {
+                    result = await Application.Current.MainPage
+                        .DisplayActionSheet("Opções para o personagem " + personagem.Nome,
+                                            "Cancelar",
+                                            "Editar Personagem",
+                                            "Restaurar pontos de vida",
+                                            "Zerar Ranking do personagem",
+                                            "Remover personagem");
+                }
+                else
+                {
+                    result = await Application.Current.MainPage
+                       .DisplayActionSheet("Opções para o personagem " + personagem.Nome,
+                                           "Cancelar",
+                                           "Restaurar pontos de vida");
+                }
+                if (result != null)
+                {
+                    ProcessarOpcaoRespondidaAsync(personagem, result);
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Ops...", ex.Message, "Ok");
+            }
+        }
+
+        public async Task ZerarRankingRestaurarVidasGeral()
+        {
+            try
+            {
+                if (await Application.Current.MainPage.DisplayAlert("Confirmação",
+                        $"Deseja realmente zerra todo o ranking?", "Sim", "Não"));
+                {
+                    await ExecutarZerarRankingRestaurarVidasGeral();
+
+                    await Application.Current.MainPage.DisplayAlert("Informação", "Ranking zerado com sucesso.", "Ok");
+
+                    await ObterPersonagens();
+                }
+            }
+            catch(Exception ex)
+            {
+                await Application.Current.MainPage
+                    .DisplayAlert("Ops...", ex.Message + " Detalhes: " + ex.InnerException, "Ok");
+            }
+        } 
 
 
 

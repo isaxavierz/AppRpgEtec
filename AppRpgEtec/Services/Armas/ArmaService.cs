@@ -9,7 +9,8 @@ namespace AppRpgEtec.Services.Armas
     {
         private readonly Request _request = null;
         private string _token;
-        private const string ApiUrlBase = "http://luizsouza.somee.com/RpgApi/Armas";
+        // private const string ApiUrlBase = "http://luizsouza.somee.com/RpgApi/Armas";
+        private const string ApiUrlBase = "https://rpgapids20242.azurewebsites.net/Armas";
 
         public ArmaService(string token)
         {
